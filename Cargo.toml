@@ -7,5 +7,7 @@ edition = "2021"
 
 [dependencies]
 embedded-hal = "0.2.6"
-windows-serial-embedded-hal = {version = "0.1.1", path = "../serial-embeded-hal"}
 num-derive = "0.3.3"
+
+[dev-dependencies]
+windows-serial-embedded-hal = {version = "0.1.1", path = "../serial-embeded-hal"}

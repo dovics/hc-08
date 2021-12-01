@@ -17,6 +17,7 @@ use command::{
 use parameters::uuid::UUID;
 
 use core::marker::PhantomData;
+use core::panic;
 use core::str::{from_utf8, Utf8Error};
 use parameters::connectable::IsConnectable;
 
@@ -110,10 +111,10 @@ where
     fn send_command(&mut self, command: &[u8]) -> Result<(), Error> {
         self.write_buffer(command)?;
 
-        if !self.wait_ok_response() {
-            Err(Error::WrongResponse)
-        } else {
+        if self.wait_ok_response() {
             Ok(())
+        } else {
+            Err(Error::WrongResponse)
         }
     }
 
@@ -138,20 +139,30 @@ where
         self.write_buffer(&QUERY_CONNECTABLE)?;
         let mut buffer = [0u8; 15];
         let mut n = 0;
-        while n < buffer.len() {
-            if n == 11 && buffer[0] == b'C' {
-                break;
-            }
+        // while n < buffer.len() {
+        //     if n == 11 && buffer[0] == b'C' {
+        //         break;
+        //     }
 
-            if let Ok(ch) = self.serial.read() {
-                buffer[n] = ch;
-                n += 1;
+        //     if let Ok(ch) = self.serial.read() {
+        //         buffer[n] = ch;
+        //         n += 1;
+        //     }
+        // }
+
+        // let c = IsConnectable::try_from(&buffer[0..n])?;
+        if let Ok(ch) = self.serial.read() {
+            if ch == b'C' {
+                Ok(IsConnectable(true))
+            } else if ch == b'N' {
+                Ok(IsConnectable(false))
+            } else {
+                Err(Error::WrongResponse)
             }
+        } else {
+            Err(Error::Read)
         }
-
-        let c = IsConnectable::try_from(&buffer[0..n])?;
-
-        Ok(c)
+        // Ok(c)
     }
 
     pub fn query_role(&mut self) -> Result<Role, Error> {
@@ -238,13 +249,14 @@ where
         }
     }
 
-    fn change_role(&mut self, role: Role) -> Result<(), Error> {
+    pub fn change_role(&mut self, role: Role) -> Result<(), Error> {
         let cmd = build_change_role_command(role);
         self.send_command(&cmd)
     }
 
-    fn change_connectable(&mut self, c: IsConnectable) -> Result<(), Error> {
+    pub fn change_connectable(&mut self, c: IsConnectable) -> Result<(), Error> {
         let cmd = build_change_connectable_command(c);
+
         self.send_command(&cmd)
     }
 

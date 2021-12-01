@@ -25,10 +25,10 @@ pub fn build_change_role_command(role: Role) -> [u8; 9] {
 pub const CONNECTABLE_BASE: [u8; 8] = *b"AT+CONT=";
 pub const QUERY_CONNECTABLE: [u8; 9] = *b"AT+CONT=?";
 
-pub fn build_change_connectable_command(c: IsConnectable) -> [u8; 10] {
-    let mut result = [0; 10];
-    result[..9].clone_from_slice(&CONNECTABLE_BASE);
-    result[9] = if c.0 { b'0' } else { b'1' };
+pub fn build_change_connectable_command(c: IsConnectable) -> [u8; 9] {
+    let mut result = [0; 9];
+    result[..8].clone_from_slice(&CONNECTABLE_BASE);
+    result[8] = if c.0 { b'0' } else { b'1' };
 
     result
 }
